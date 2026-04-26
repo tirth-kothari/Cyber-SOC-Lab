@@ -1,0 +1,19 @@
+---
+- name: Install Wazuh Agent on Ubuntu Nodes
+  hosts: victims  # Target only the victim nodes
+  become: true
+  vars:
+    wazuh_manager_ip: "10.10.10.24" # Your Wazuh Server IP
+  tasks:
+    - name: Download and install Wazuh agent
+      shell: |
+        curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import && chmod 644 /usr/share/keyrings/wazuh.gpg
+        echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main" | tee -a /etc/apt/sources.list.d/wazuh.list
+        apt-get update
+        WAZUH_MANAGER='{{ wazuh_manager_ip }}' apt-get install wazuh-agent -y
+
+    - name: Enable and start Wazuh agent service
+      systemd:
+        name: wazuh-agent
+        enabled: yes
+        state: started

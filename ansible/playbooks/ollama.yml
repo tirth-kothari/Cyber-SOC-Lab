@@ -1,0 +1,21 @@
+---
+- name: Deploy AI Analyst Node
+  hosts: ai_nodes
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name: [curl, python3-pip]
+        state: present
+
+    - name: Install Ollama via official script
+      shell: "curl -fsSL https://ollama.com/install.sh | sh"
+      args:
+        creates: /usr/local/bin/ollama
+
+    - name: Pull Llama 3.1 model
+      shell: "ollama pull llama3.1:8b"

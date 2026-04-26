@@ -87,3 +87,72 @@ resource "proxmox_virtual_environment_vm" "kali_attacker" {
     bridge = "vmbr1"
   }
 }
+
+# 3. THE SIEM (Wazuh Server)
+resource "proxmox_virtual_environment_vm" "wazuh_server" {
+  name      = "wazuh-server"
+  node_name = var.target_node
+  vm_id     = 400
+
+  cpu {
+    cores = 2
+  }
+
+  memory {
+    dedicated = 12288 # 6GB RAM
+  }
+
+  agent { enabled = true }
+
+  clone {
+    vm_id = var.template_id # Using your Ubuntu template
+    full  = true
+  }
+
+  initialization {
+    ip_config {
+      ipv4 { address = "dhcp" }
+    }
+    user_account {
+      username = "ubuntu"
+      keys     = [trimspace(file("~/.ssh/id_rsa.pub"))]
+    }
+  }
+
+  network_device { bridge = "vmbr1" }
+}
+
+# 4. THE AI ANALYST (Ollama Node)
+resource "proxmox_virtual_environment_vm" "ai_analyst" {
+  name      = "ai-analyst"
+  node_name = var.target_node
+  vm_id     = 500
+
+  cpu {
+    cores = 4 
+    type  = "host" # Allows the AI to use physical CPU features for speed
+  }
+
+  memory {
+    dedicated = 16384 # 8GB RAM (Bump to 12288 if you have 32GB total on host)
+  }
+
+  agent { enabled = true }
+
+  clone {
+    vm_id = var.template_id # Using your Ubuntu template
+    full  = true
+  }
+
+  initialization {
+    ip_config {
+      ipv4 { address = "dhcp" }
+    }
+    user_account {
+      username = "ubuntu"
+      keys     = [trimspace(file("~/.ssh/id_rsa.pub"))]
+    }
+  }
+
+  network_device { bridge = "vmbr1" }
+}

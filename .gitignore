@@ -4,3 +4,12 @@
 *.tfstate.backup
 *.tfvars
 .terraform.lock.hcl
+
+# Ansible Secrets
+*creds.txt
+*.pem
+*.key
+
+# Windows/OS files
+.DS_Store
+Thumbs.db

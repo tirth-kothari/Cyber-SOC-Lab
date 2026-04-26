@@ -1,0 +1,22 @@
+---
+- name: Deploy Wazuh SIEM
+  hosts: wazuh_servers
+  become: true
+  tasks:
+    - name: Download Wazuh installation assistant
+      get_url:
+        url: https://packages.wazuh.com/4.9/wazuh-install.sh
+        dest: /tmp/wazuh-install.sh
+        mode: '0700'
+
+    - name: Run Wazuh All-in-One installation
+      shell: /tmp/wazuh-install.sh -a
+      register: wazuh_output
+      # This takes about 5-10 minutes
+      async: 1200 
+      poll: 30
+
+    - name: Save Wazuh credentials to a file
+      copy:
+        content: "{{ wazuh_output.stdout }}"
+        dest: /home/ubuntu/wazuh_creds.txt
