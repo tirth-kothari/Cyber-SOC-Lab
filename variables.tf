@@ -23,3 +23,13 @@ variable "template_id" {
   type    = number
   default = 101
 }
+
+variable "kali_template_id" {
+  type    = number
+  default = 102
+}
+
+variable "kali_count" {
+  type    = number
+  default = 1
+}
