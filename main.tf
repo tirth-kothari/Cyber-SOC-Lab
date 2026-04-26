@@ -42,7 +42,13 @@ resource "proxmox_virtual_environment_vm" "lab_nodes" {
         address = "dhcp"
       }
     }
+    user_account {
+      username = "ubuntu"
+      keys     = [trimspace(file("~/.ssh/id_rsa.pub"))]
+    }
   }
+
+  
 
   network_device {
     bridge = "vmbr1"
@@ -50,3 +56,34 @@ resource "proxmox_virtual_environment_vm" "lab_nodes" {
   }
 }
 
+resource "proxmox_virtual_environment_vm" "kali_attacker" {
+  count     = var.kali_count
+  name      = "kali-attacker-${count.index}"
+  node_name = var.target_node
+  vm_id     = 300 + count.index  # Starts at 300 to keep it separate from Ubuntu (200s)
+
+  agent {
+    enabled = true
+  }
+
+  clone {
+    vm_id = var.kali_template_id
+    full  = true
+  }
+
+  initialization {
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
+    user_account {
+      username = "kali"
+      keys     = [trimspace(file("~/.ssh/id_rsa.pub"))] # Ensure this matches your path
+    }
+  }
+
+  network_device {
+    bridge = "vmbr1"
+  }
+}
