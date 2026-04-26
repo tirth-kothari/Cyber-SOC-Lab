@@ -48,5 +48,33 @@ Cause: Re-deploying VMs to the same IPs triggered SSH security warnings because 
 
 Resolution: Cleared stale keys on the management machine using:
 
-PowerShell
 ssh-keygen -R [VM_IP_ADDRESS]
+
+
+## Project: Automated Security Lab (Phase 2 - Attacker Deployment)
+Current Status: Active
+Architecture: 3x Ubuntu SOC Nodes | 3x Kali Linux Attacker Nodes
+
+### 🚀 Deployment Overview
+This phase involved extending the Terraform-managed Proxmox environment to include a dedicated "Attacker" subnet using Kali Linux. To ensure lab stability, I utilized a Manual ISO Template approach to bypass public cloud image inconsistencies.
+
+### 🛠️ Technical Challenges & SolutionsChallengeSolution
+Proxmox Repository 401 ErrorsIdentified enterprise repository conflicts. Swapped to pve-no-subscription repositories and updated GPG keys to allow host-level tool installation (p7zip).
+Cloud-Init Mirror TimeoutsPivoted from .qcow2 cloud images to a manual ISO installation to create a "Known Good" golden image.
+I/O Timeout during ApplyResolved "Context Deadline Exceeded" errors by implementing -parallelism=1 and increasing Terraform resource timeouts to 30 minutes.
+
+### 🏗️ Infrastructure as Code (Terraform)
+The Kali nodes are managed as a separate resource block with a unique ID offset (300+) to prevent collisions with the SOC nodes.
+
+# Kali Attacker Logic
+resource "proxmox_virtual_environment_vm" "kali_attacker" {
+  count     = 3
+  vm_id     = 300 + count.index
+  clone {
+    vm_id = 9001 # Custom ISO Golden Image
+  } # Cloud-init automates SSH key injection for immediate access
+}
+### 🔒 Security & AccessSSH: 
+Pre-configured on Port 22 within the golden image.
+Identity: machine-id wiped post-install to ensure unique DHCP assignments for clones.
+Authentication: Passwordless SSH-key entry managed via Terraform user_account blocks.
